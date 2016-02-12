@@ -1,0 +1,163 @@
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - interactive cubes</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				font-family: Monospace;
+				background-color: #000;
+				margin: 0px;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body>
+
+		<script src="three.min.js"></script>
+
+		<script>
+
+			var container;
+			var camera, scene, renderer;
+
+			var mouse = new THREE.Vector2(), INTERSECTED;
+			var radius = 100, theta = 0;
+
+			fetchTextures();
+
+
+			function fetchTextures() {
+				var request = new XMLHttpRequest();
+				request.open('GET', './imgs.json', true);
+
+				request.onload = function() {
+					if (request.status !== 200) {
+						return;
+					}
+					
+					init(JSON.parse(request.responseText));
+					animate();
+				}
+
+				request.send();
+			}
+
+			function init(textures) {
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				var info = document.createElement( 'div' );
+				info.style.position = 'absolute';
+				info.style.top = '10px';
+				info.style.width = '100%';
+				info.style.textAlign = 'center';
+				container.appendChild( info );
+
+				camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
+
+				scene = new THREE.Scene();
+
+				var light = new THREE.DirectionalLight( 0xffffff, 0.7 );
+				light.position.set( 0, 80, 0 ).normalize();
+				scene.add( light );
+
+				var light2 = new THREE.DirectionalLight( 0xffffff, 0.8 );
+				light2.position.set( 80, 0, 0 ).normalize();
+				scene.add( light2 );
+
+				var light3 = new THREE.DirectionalLight( 0xffffff, 0.7 );
+				light3.position.set( 0, 0, 80 ).normalize();
+				scene.add( light3 );
+
+				textures = loadedTextures(textures);
+
+				var geometry = new THREE.BoxGeometry( 100, 14, 14 );
+
+				for ( var i = 0; i < 700; i ++ ) {
+					var random = Math.floor(Math.random() * textures.length);
+					console.log(textures);
+
+					var object = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { map: textures[random] } ) );
+
+					object.position.x = Math.random() * 700 - 300;
+					object.position.y = Math.random() * 700 - 300;
+					object.position.z = Math.random() * 700 - 300;
+
+					object.rotation.x = Math.random() * 2 * Math.PI;
+					object.rotation.y = Math.random() * 2 * Math.PI;
+					object.rotation.z = Math.random() * 2 * Math.PI;
+
+
+					scene.add( object );
+
+				}
+
+				
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setClearColor( 0x000000 );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.sortObjects = false;
+				container.appendChild(renderer.domElement);
+
+
+				
+
+				//
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			function loadedTextures(textures) {
+				return textures.map(function(texture) {
+					return new THREE.TextureLoader().load(texture);
+				});
+			}
+
+			//
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				render();
+
+			}
+
+			function render() {
+
+				theta += 0.1;
+
+				camera.position.x = radius * Math.sin( THREE.Math.degToRad( theta ) );
+				camera.position.y = radius * Math.sin( THREE.Math.degToRad( theta ) );
+				camera.position.z = radius * Math.cos( THREE.Math.degToRad( theta ) );
+				camera.lookAt( scene.position );
+
+				camera.updateMatrixWorld();
+
+				// find intersections
+
+				
+
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+
+	</body>
+</html>
